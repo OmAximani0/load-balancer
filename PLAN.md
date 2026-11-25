@@ -161,10 +161,10 @@ Request 10 -> Server 3
 
 ## 4. Project Directory Structure
 
-Create the following directory structure:
+Create the following directory structure directly in the current folder (`.`):
 
 ```text
-mini-distributed-load-balancer/
+. (Current Root: load-balancer/)
 │
 ├── app/
 │   ├── __init__.py
@@ -896,7 +896,7 @@ Before writing code:
 1. Understand the complete architecture.
 2. Inspect the existing repository, if one exists.
 3. Identify missing files and components.
-4. Follow the specified directory structure unless the repository already has a sensible equivalent.
+4. Follow the specified directory structure directly within the current folder as project root.
 
 During implementation:
 
