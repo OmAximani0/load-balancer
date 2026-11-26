@@ -1,0 +1,62 @@
+services:
+  load-balancer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: load-balancer
+    ports:
+      - "8000:8000"
+    environment:
+      - BACKEND_1_URL=http://backend-1:8001
+      - BACKEND_2_URL=http://backend-2:8002
+      - BACKEND_3_URL=http://backend-3:8003
+      - HEALTH_CHECK_INTERVAL=5.0
+      - REQUEST_TIMEOUT=5.0
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    depends_on:
+      - backend-1
+      - backend-2
+      - backend-3
+    networks:
+      - distributed-network
+    restart: unless-stopped
+
+  backend-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend-1
+    environment:
+      - SERVER_ID=server-1
+    command: uvicorn servers.backend:app --host 0.0.0.0 --port 8001
+    networks:
+      - distributed-network
+    restart: unless-stopped
+
+  backend-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend-2
+    environment:
+      - SERVER_ID=server-2
+    command: uvicorn servers.backend:app --host 0.0.0.0 --port 8002
+    networks:
+      - distributed-network
+    restart: unless-stopped
+
+  backend-3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend-3
+    environment:
+      - SERVER_ID=server-3
+    command: uvicorn servers.backend:app --host 0.0.0.0 --port 8003
+    networks:
+      - distributed-network
+    restart: unless-stopped
+
+networks:
+  distributed-network:
+    driver: bridge
