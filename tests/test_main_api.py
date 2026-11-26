@@ -80,3 +80,22 @@ async def test_main_proxy_no_servers_available() -> None:
     finally:
         for s_id, h in original_health.items():
             load_balancer.servers[s_id].is_healthy = h
+
+
+@pytest.mark.asyncio
+async def test_main_dashboard_assets() -> None:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # Dashboard HTML
+        resp_html = await client.get("/")
+        assert resp_html.status_code == 200
+        assert "Mini Distributed Load Balancer" in resp_html.text
+
+        # CSS
+        resp_css = await client.get("/style.css")
+        assert resp_css.status_code == 200
+
+        # JS
+        resp_js = await client.get("/script.js")
+        assert resp_js.status_code == 200
+

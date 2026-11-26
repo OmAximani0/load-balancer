@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Load Balancer Monitor</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="brand">
+        <div class="logo-icon">⚖️</div>
+        <div>
+          <h1>Mini Distributed Load Balancer</h1>
+          <p class="subtitle">Round Robin Scheduling & Real-time Health Monitoring</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div id="system-status" class="status-badge status-healthy">
+          <span class="status-dot"></span>
+          <span id="system-status-text">System Active</span>
+        </div>
+        <button id="btn-send-request" class="btn btn-primary">Send Test Request</button>
+      </div>
+    </header>
+
+    <div id="alert-banner" class="alert-banner hidden"></div>
+
+    <!-- Overview Stats Cards -->
+    <section class="section">
+      <h2 class="section-title">System Overview</h2>
+      <div class="stats-grid">
+        <div class="card stat-card">
+          <span class="stat-label">Total Requests</span>
+          <span id="stat-total" class="stat-value">0</span>
+        </div>
+        <div class="card stat-card">
+          <span class="stat-label">Successful Requests</span>
+          <span id="stat-success" class="stat-value text-success">0</span>
+        </div>
+        <div class="card stat-card">
+          <span class="stat-label">Failed Requests</span>
+          <span id="stat-failed" class="stat-value text-danger">0</span>
+        </div>
+        <div class="card stat-card">
+          <span class="stat-label">Active Backends</span>
+          <span id="stat-active" class="stat-value text-info">0 / 3</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Backend Nodes Grid -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">Backend Server Nodes</h2>
+        <span class="refresh-indicator">Auto-refreshing every 2s</span>
+      </div>
+      <div id="servers-grid" class="servers-grid">
+        <!-- Rendered dynamically via JavaScript -->
+      </div>
+    </section>
+
+    <!-- Request Distribution Chart -->
+    <section class="section">
+      <h2 class="section-title">Request Distribution</h2>
+      <div class="card distribution-card">
+        <div id="distribution-bars" class="distribution-bars">
+          <!-- Rendered dynamically via JavaScript -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent Activity Log -->
+    <section class="section">
+      <h2 class="section-title">Recent Activity</h2>
+      <div class="card activity-card">
+        <table class="activity-table">
+          <thead>
+            <tr>
+              <th>Req #</th>
+              <th>Backend Server</th>
+              <th>Status</th>
+              <th>Response Time</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="activity-log-body">
+            <tr>
+              <td colspan="5" class="text-muted">No recent requests recorded yet. Click "Send Test Request" above.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script src="/script.js"></script>
+</body>
+</html>
