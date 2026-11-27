@@ -3,99 +3,185 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Load Balancer Monitor</title>
-  <link rel="stylesheet" href="/style.css?v=reset">
+  <title>Load Balancer Monitor | Telemetry Dashboard</title>
+  <link rel="stylesheet" href="/style.css?v=ux-redesign">
 </head>
 <body>
-  <div class="container">
-    <header class="header">
+  <div class="app-layout">
+    <!-- Top Navigation & Control Header -->
+    <header class="app-header">
       <div class="brand">
-        <div class="logo-icon">⚖️</div>
+        <div class="brand-badge">
+          <span class="brand-icon">⚖️</span>
+        </div>
         <div>
-          <h1>Mini Distributed Load Balancer</h1>
-          <p class="subtitle">Round Robin Scheduling & Real-time Health Monitoring</p>
+          <div class="brand-title-wrap">
+            <h1 class="brand-title">Mini Distributed Load Balancer</h1>
+            <span class="version-tag">Round-Robin</span>
+          </div>
+          <p class="brand-subtitle">Real-time scheduling telemetry, active health monitoring & failover</p>
         </div>
       </div>
-      <div class="header-actions">
-        <div id="system-status" class="status-badge status-healthy">
+
+      <div class="controls-toolbar" role="toolbar" aria-label="Load balancer controls">
+        <div id="system-status" class="status-indicator status-online" role="status" aria-live="polite">
+          <span class="pulse-ring"></span>
           <span class="status-dot"></span>
-          <span id="system-status-text">System Active</span>
+          <span id="system-status-text">Cluster Active</span>
         </div>
-        <button id="btn-reset-traffic" class="btn btn-secondary" title="Reset all traffic statistics">Reset Traffic</button>
-        <button id="btn-send-request" class="btn btn-primary">Send Test Request</button>
+
+        <div class="button-group">
+          <button id="btn-auto-traffic" class="btn btn-outline" title="Automatically generate 1 request per second to observe real-time rotation">
+            <span class="btn-icon">▶</span>
+            <span id="auto-traffic-label">Auto Traffic</span>
+          </button>
+          <button id="btn-reset-traffic" class="btn btn-ghost" title="Reset all request counters and latency statistics">
+            <span class="btn-icon">↺</span>
+            <span>Reset Traffic</span>
+          </button>
+          <button id="btn-send-request" class="btn btn-primary" title="Dispatch an HTTP request through the load balancer">
+            <span class="btn-icon">⚡</span>
+            <span>Send Test Request</span>
+          </button>
+        </div>
       </div>
     </header>
 
-    <div id="alert-banner" class="alert-banner hidden"></div>
+    <div id="alert-banner" class="alert-banner hidden" role="alert" aria-live="assertive"></div>
 
-    <!-- Overview Stats Cards -->
-    <section class="section">
-      <h2 class="section-title">System Overview</h2>
-      <div class="stats-grid">
-        <div class="card stat-card">
-          <span class="stat-label">Total Requests</span>
-          <span id="stat-total" class="stat-value">0</span>
+    <main class="dashboard-main">
+      <!-- KPI Overview Grid -->
+      <section class="section" aria-labelledby="kpi-heading">
+        <div class="section-title-bar">
+          <h2 id="kpi-heading" class="section-heading">Cluster Overview</h2>
+          <span class="telemetry-ping"><span class="ping-dot"></span> Live Telemetry</span>
         </div>
-        <div class="card stat-card">
-          <span class="stat-label">Successful Requests</span>
-          <span id="stat-success" class="stat-value text-success">0</span>
-        </div>
-        <div class="card stat-card">
-          <span class="stat-label">Failed Requests</span>
-          <span id="stat-failed" class="stat-value text-danger">0</span>
-        </div>
-        <div class="card stat-card">
-          <span class="stat-label">Active Backends</span>
-          <span id="stat-active" class="stat-value text-info">0 / 3</span>
-        </div>
-      </div>
-    </section>
+        <div class="kpi-grid">
+          <div class="card kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-label">Total Requests</span>
+              <span class="kpi-icon">📊</span>
+            </div>
+            <div class="kpi-value-wrap">
+              <span id="stat-total" class="kpi-value">0</span>
+              <span class="kpi-subtext">Cumulative dispatched</span>
+            </div>
+          </div>
 
-    <!-- Backend Nodes Grid -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">Backend Server Nodes</h2>
-        <span class="refresh-indicator">Auto-refreshing every 2s</span>
-      </div>
-      <div id="servers-grid" class="servers-grid">
-        <!-- Rendered dynamically via JavaScript -->
-      </div>
-    </section>
+          <div class="card kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-label">Successful</span>
+              <span class="kpi-icon text-success">✓</span>
+            </div>
+            <div class="kpi-value-wrap">
+              <span id="stat-success" class="kpi-value text-success">0</span>
+              <span id="stat-success-rate" class="kpi-subtext text-success">100% success rate</span>
+            </div>
+          </div>
 
-    <!-- Request Distribution Chart -->
-    <section class="section">
-      <h2 class="section-title">Request Distribution</h2>
-      <div class="card distribution-card">
-        <div id="distribution-bars" class="distribution-bars">
+          <div class="card kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-label">Failed Requests</span>
+              <span class="kpi-icon text-danger">✕</span>
+            </div>
+            <div class="kpi-value-wrap">
+              <span id="stat-failed" class="kpi-value text-danger">0</span>
+              <span class="kpi-subtext">502 / 503 errors</span>
+            </div>
+          </div>
+
+          <div class="card kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-label">Backend Nodes</span>
+              <span class="kpi-icon text-cyan">🖥️</span>
+            </div>
+            <div class="kpi-value-wrap">
+              <span id="stat-active" class="kpi-value text-cyan">0 / 3</span>
+              <span class="kpi-subtext">Available in rotation</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Backend Nodes Topology -->
+      <section class="section" aria-labelledby="nodes-heading">
+        <div class="section-title-bar">
+          <div>
+            <h2 id="nodes-heading" class="section-heading">Backend Node Fleet</h2>
+            <p class="section-subtext">Nodes handling distributed requests in Round-Robin sequence</p>
+          </div>
+          <span class="badge-refresh">Heartbeat: 2s interval</span>
+        </div>
+        <div id="servers-grid" class="nodes-grid">
           <!-- Rendered dynamically via JavaScript -->
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Recent Activity Log -->
-    <section class="section">
-      <h2 class="section-title">Recent Activity</h2>
-      <div class="card activity-card">
-        <table class="activity-table">
-          <thead>
-            <tr>
-              <th>Req #</th>
-              <th>Backend Server</th>
-              <th>Status</th>
-              <th>Response Time</th>
-              <th>Timestamp</th>
-            </tr>
-          </thead>
-          <tbody id="activity-log-body">
-            <tr>
-              <td colspan="5" class="text-muted">No recent requests recorded yet. Click "Send Test Request" above.</td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- Two-column section: Distribution and Live Activity -->
+      <div class="dashboard-split-layout">
+        <!-- Distribution Visualization -->
+        <section class="section distribution-section" aria-labelledby="dist-heading">
+          <div class="section-title-bar">
+            <h2 id="dist-heading" class="section-heading">Traffic Distribution</h2>
+          </div>
+          <div class="card distribution-card">
+            <p class="card-caption">Proportional workload distribution across active backend instances</p>
+            <div id="distribution-segmented-bar" class="segmented-bar">
+              <!-- Rendered dynamically via JavaScript -->
+            </div>
+            <div id="distribution-bars" class="distribution-legend">
+              <!-- Rendered dynamically via JavaScript -->
+            </div>
+          </div>
+        </section>
+
+        <!-- Live Activity Stream -->
+        <section class="section activity-section" aria-labelledby="activity-heading">
+          <div class="section-title-bar">
+            <h2 id="activity-heading" class="section-heading">Recent Dispatches</h2>
+            <span class="badge-stream">Latest 10 requests</span>
+          </div>
+          <div class="card activity-card">
+            <div class="table-responsive">
+              <table class="activity-table">
+                <thead>
+                  <tr>
+                    <th>Req #</th>
+                    <th>Target Node</th>
+                    <th>Status</th>
+                    <th>Latency</th>
+                    <th>Time</th>
+                  </tr>
+                </thead>
+                <tbody id="activity-log-body">
+                  <tr>
+                    <td colspan="5" class="empty-state-cell">
+                      <div class="empty-state">
+                        <span class="empty-icon">⚡</span>
+                        <p class="empty-title">No requests recorded yet</p>
+                        <p class="empty-desc">Click "Send Test Request" or "Auto Traffic" above to start dispatching HTTP traffic.</p>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
       </div>
-    </section>
+    </main>
+
+    <footer class="app-footer">
+      <div class="footer-content">
+        <span>Mini Distributed Load Balancer &bull; FastAPI + HTTPX + Docker Compose</span>
+        <span class="footer-links">
+          <a href="/docs" target="_blank" rel="noopener">OpenAPI Docs</a> &bull;
+          <a href="/stats" target="_blank" rel="noopener">Raw Stats API</a>
+        </span>
+      </div>
+    </footer>
   </div>
 
-  <script src="/script.js?v=reset"></script>
+  <script src="/script.js?v=ux-redesign"></script>
 </body>
 </html>
