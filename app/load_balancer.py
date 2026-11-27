@@ -83,6 +83,10 @@ class LoadBalancer:
         self.servers[server_id].is_simulated_down = not healthy
         return True
 
+    async def reset_stats(self) -> None:
+        await self.stats.reset()
+        await self.scheduler.reset()
+
     async def forward_request(
         self,
         path: str = "/process",

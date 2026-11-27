@@ -113,6 +113,18 @@ body {
   background: var(--accent-hover);
 }
 
+.btn-secondary {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--card-border);
+}
+
+.btn-secondary:hover {
+  color: var(--text-main);
+  border-color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+}
+
 .btn-sm {
   padding: 4px 10px;
   font-size: 0.8rem;
@@ -330,6 +342,12 @@ body {
   border-radius: 8px;
   margin-bottom: 20px;
   font-size: 0.9rem;
+}
+
+.alert-success {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid var(--success);
+  color: #a7f3d0;
 }
 
 .alert-danger {

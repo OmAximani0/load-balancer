@@ -43,6 +43,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+CACHE_CONTROL_HEADERS = {
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Pragma": "no-cache",
+    "Expires": "0",
+}
+
 dashboard_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dashboard")
 if os.path.exists(dashboard_dir):
     app.mount("/static", StaticFiles(directory=dashboard_dir), name="static")
@@ -66,10 +72,11 @@ class HealthCheckResponse(BaseModel):
 async def serve_dashboard() -> Response:
     index_file = os.path.join(dashboard_dir, "index.html")
     if os.path.exists(index_file):
-        return FileResponse(index_file, media_type="text/html")
+        return FileResponse(index_file, media_type="text/html", headers=CACHE_CONTROL_HEADERS)
     return JSONResponse(
         content={"message": "Load Balancer Running. Dashboard file not found."},
         status_code=200,
+        headers=CACHE_CONTROL_HEADERS,
     )
 
 
@@ -77,7 +84,7 @@ async def serve_dashboard() -> Response:
 async def serve_css() -> Response:
     css_file = os.path.join(dashboard_dir, "style.css")
     if os.path.exists(css_file):
-        return FileResponse(css_file, media_type="text/css")
+        return FileResponse(css_file, media_type="text/css", headers=CACHE_CONTROL_HEADERS)
     return Response(status_code=404)
 
 
@@ -85,7 +92,7 @@ async def serve_css() -> Response:
 async def serve_js() -> Response:
     js_file = os.path.join(dashboard_dir, "script.js")
     if os.path.exists(js_file):
-        return FileResponse(js_file, media_type="application/javascript")
+        return FileResponse(js_file, media_type="application/javascript", headers=CACHE_CONTROL_HEADERS)
     return Response(status_code=404)
 
 
@@ -124,6 +131,12 @@ async def list_servers() -> List[ServerInfo]:
 async def get_stats() -> Dict[str, Any]:
     health_map = load_balancer.get_server_health_map()
     return await stats_collector.get_stats(health_map)
+
+
+@app.post("/stats/reset")
+async def reset_stats() -> Dict[str, str]:
+    await load_balancer.reset_stats()
+    return {"message": "Traffic statistics reset successfully"}
 
 
 @app.post("/servers/{server_id}/toggle")

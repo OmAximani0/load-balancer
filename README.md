@@ -138,6 +138,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 | `/health` | GET | Health status of the load balancer itself |
 | `/servers` | GET | List configured backends and their health |
 | `/stats` | GET | In-memory request metrics and average latency |
+| `/stats/reset` | POST | Resets total and per-server traffic statistics |
 | `/servers/{server_id}/toggle` | POST | Administrative simulation to toggle backend availability |
 
 ---

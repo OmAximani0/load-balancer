@@ -83,6 +83,21 @@ async def test_main_proxy_no_servers_available() -> None:
 
 
 @pytest.mark.asyncio
+async def test_main_stats_reset_endpoint() -> None:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # Record a dummy request
+        await stats_collector.record_request("server-1", success=True, response_time_ms=25.0)
+        assert stats_collector.total_requests >= 1
+
+        # Call reset endpoint
+        resp_reset = await client.post("/stats/reset")
+        assert resp_reset.status_code == 200
+        assert resp_reset.json() == {"message": "Traffic statistics reset successfully"}
+        assert stats_collector.total_requests == 0
+
+
+@pytest.mark.asyncio
 async def test_main_dashboard_assets() -> None:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -90,6 +105,7 @@ async def test_main_dashboard_assets() -> None:
         resp_html = await client.get("/")
         assert resp_html.status_code == 200
         assert "Mini Distributed Load Balancer" in resp_html.text
+        assert "btn-reset-traffic" in resp_html.text
 
         # CSS
         resp_css = await client.get("/style.css")

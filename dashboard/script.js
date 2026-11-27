@@ -37,6 +37,38 @@ async function toggleServerHealth(serverId, currentHealthy) {
   }
 }
 
+async function resetTraffic() {
+  const btn = document.getElementById("btn-reset-traffic");
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = "Resetting...";
+  }
+
+  try {
+    const res = await fetch("/stats/reset", { method: "POST" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    requestCounter = 0;
+    activityLogs.length = 0;
+    renderActivityLogs();
+
+    if (btn) {
+      btn.innerText = "Reset Done ✓";
+      setTimeout(() => {
+        btn.innerText = "Reset Traffic";
+        btn.disabled = false;
+      }, 1200);
+    }
+    await updateDashboard();
+  } catch (err) {
+    alert(`Could not reset traffic: ${err.message}`);
+    if (btn) {
+      btn.innerText = "Reset Traffic";
+      btn.disabled = false;
+    }
+  }
+}
+
 async function sendProxyRequest() {
   const btn = document.getElementById("btn-send-request");
   btn.disabled = true;
@@ -211,6 +243,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("btn-send-request");
   if (btn) {
     btn.addEventListener("click", sendProxyRequest);
+  }
+  const btnReset = document.getElementById("btn-reset-traffic");
+  if (btnReset) {
+    btnReset.addEventListener("click", resetTraffic);
   }
   updateDashboard();
   setInterval(updateDashboard, 2000);
