@@ -2,15 +2,15 @@ let requestCounter = 0;
 const activityLogs = [];
 let autoTrafficInterval = null;
 
-const SERVER_COLORS = {
-  "server-1": { hex: "#10b981", glow: "rgba(16, 185, 129, 0.4)", bg: "rgba(16, 185, 129, 0.12)" },
-  "server-2": { hex: "#38bdf8", glow: "rgba(56, 189, 248, 0.4)", bg: "rgba(56, 189, 248, 0.12)" },
-  "server-3": { hex: "#a855f7", glow: "rgba(168, 85, 247, 0.4)", bg: "rgba(168, 85, 247, 0.12)" },
-  "default":  { hex: "#64748b", glow: "rgba(100, 116, 139, 0.4)", bg: "rgba(100, 116, 139, 0.12)" },
+const NODE_THEMES = {
+  "server-1": { hex: "#2563eb", glow: "rgba(37, 99, 235, 0.3)", light: "#eff6ff", text: "#1d4ed8" }, // Royal Blue
+  "server-2": { hex: "#10b981", glow: "rgba(16, 185, 129, 0.3)", light: "#ecfdf5", text: "#059669" }, // Emerald Green
+  "server-3": { hex: "#f59e0b", glow: "rgba(245, 158, 11, 0.3)", light: "#fffbeb", text: "#d97706" }, // Amber
+  "default":  { hex: "#64748b", glow: "rgba(100, 116, 139, 0.3)", light: "#f1f5f9", text: "#475569" },
 };
 
-function getNodeColor(serverId) {
-  return SERVER_COLORS[serverId] || SERVER_COLORS["default"];
+function getNodeTheme(serverId) {
+  return NODE_THEMES[serverId] || NODE_THEMES["default"];
 }
 
 function showAlert(message, type = "success", durationMs = 3000) {
@@ -80,7 +80,10 @@ async function resetTraffic() {
     if (btn) {
       btn.innerText = "Reset Done ✓";
       setTimeout(() => {
-        btn.innerHTML = `<span class="btn-icon">↺</span> <span>Reset Traffic</span>`;
+        btn.innerHTML = `
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          <span>Reset Traffic</span>
+        `;
         btn.disabled = false;
       }, 1200);
     }
@@ -88,7 +91,10 @@ async function resetTraffic() {
   } catch (err) {
     showAlert(`Could not reset traffic: ${err.message}`, "danger");
     if (btn) {
-      btn.innerHTML = `<span class="btn-icon">↺</span> <span>Reset Traffic</span>`;
+      btn.innerHTML = `
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        <span>Reset Traffic</span>
+      `;
       btn.disabled = false;
     }
   }
@@ -99,8 +105,7 @@ function pingNodeCard(serverId) {
   const card = document.getElementById(`node-card-${serverId}`);
   if (card) {
     card.classList.remove("ping-active");
-    // Trigger reflow to restart CSS animation
-    void card.offsetWidth;
+    void card.offsetWidth; // Force CSS reflow to re-trigger keyframe animation
     card.classList.add("ping-active");
     setTimeout(() => {
       card.classList.remove("ping-active");
@@ -112,7 +117,7 @@ async function sendProxyRequest() {
   const btn = document.getElementById("btn-send-request");
   if (btn && !autoTrafficInterval) {
     btn.disabled = true;
-    btn.innerHTML = `<span class="btn-icon">⏳</span> <span>Dispatching...</span>`;
+    btn.innerHTML = `<span>⏳ Sending...</span>`;
   }
 
   const startTime = performance.now();
@@ -145,7 +150,7 @@ async function sendProxyRequest() {
     logActivity({
       reqNum: currentReqNum,
       backend: "Failed",
-      status: "502 Bad Gateway",
+      status: "502 Error",
       isSuccess: false,
       duration: `${duration} ms`,
       timestamp: new Date().toLocaleTimeString()
@@ -153,7 +158,10 @@ async function sendProxyRequest() {
   } finally {
     if (btn && !autoTrafficInterval) {
       btn.disabled = false;
-      btn.innerHTML = `<span class="btn-icon">⚡</span> <span>Send Test Request</span>`;
+      btn.innerHTML = `
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        <span>Send Test Request</span>
+      `;
     }
   }
 }
@@ -192,12 +200,8 @@ function renderActivityLogs() {
   if (activityLogs.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="5" class="empty-state-cell">
-          <div class="empty-state">
-            <span class="empty-icon">⚡</span>
-            <p class="empty-title">No requests recorded yet</p>
-            <p class="empty-desc">Click "Send Test Request" or "Auto Traffic" above to start dispatching HTTP traffic.</p>
-          </div>
+        <td colspan="5" class="table-empty">
+          No requests recorded yet. Click "Send Test Request" above.
         </td>
       </tr>
     `;
@@ -205,13 +209,13 @@ function renderActivityLogs() {
   }
 
   tbody.innerHTML = activityLogs.map(log => {
-    const nodeColor = getNodeColor(log.backend);
+    const theme = getNodeTheme(log.backend);
     return `
       <tr>
         <td><strong>#${log.reqNum}</strong></td>
         <td>
-          <span class="pill-node" style="color: ${nodeColor.hex}; background: ${nodeColor.bg}; border-color: ${nodeColor.hex}40;">
-            ${log.backend}
+          <span class="pill-node" style="background:${theme.light}; color:${theme.text}; border: 1px solid ${theme.hex}30;">
+            ● ${log.backend}
           </span>
         </td>
         <td>
@@ -219,8 +223,8 @@ function renderActivityLogs() {
             ${log.isSuccess ? '✓' : '✕'} ${log.status}
           </span>
         </td>
-        <td><span class="pill-latency">${log.duration}</span></td>
-        <td>${log.timestamp}</td>
+        <td><span style="font-family: ui-monospace, monospace; font-size: 0.8rem;">${log.duration}</span></td>
+        <td style="color: var(--text-subtle); font-size: 0.775rem;">${log.timestamp}</td>
       </tr>
     `;
   }).join("");
@@ -236,11 +240,9 @@ function updateOverview(stats, servers) {
   if (successRateElem) {
     if (stats.total_requests > 0) {
       const rate = Math.round((stats.successful_requests / stats.total_requests) * 100);
-      successRateElem.innerText = `${rate}% success rate`;
-      successRateElem.className = rate >= 95 ? "kpi-subtext text-success" : "kpi-subtext text-danger";
+      successRateElem.innerText = `${rate}% Rate`;
     } else {
-      successRateElem.innerText = "100% success rate";
-      successRateElem.className = "kpi-subtext text-success";
+      successRateElem.innerText = `100% Rate`;
     }
   }
 }
@@ -257,48 +259,46 @@ function renderServers(servers, stats) {
   const totalReqs = stats ? (stats.total_requests || 0) : 0;
 
   grid.innerHTML = servers.map(server => {
-    const serverStat = statsMap[server.id] || { requests: 0, avg_response_time_ms: 0 };
+    const sStat = statsMap[server.id] || { requests: 0, avg_response_time_ms: 0 };
     const isHealthy = server.healthy;
-    const nodeColor = getNodeColor(server.id);
-    const trafficShare = totalReqs > 0 ? ((serverStat.requests / totalReqs) * 100).toFixed(1) : 0;
+    const theme = getNodeTheme(server.id);
+    const trafficShare = totalReqs > 0 ? ((sStat.requests / totalReqs) * 100).toFixed(1) : 0;
 
     return `
       <div id="node-card-${server.id}"
            class="card node-card"
-           style="--node-color: ${nodeColor.hex}; --node-glow: ${nodeColor.glow};">
+           style="--node-color: ${theme.hex}; --node-glow: ${theme.glow};">
         <div class="node-header">
           <div>
-            <div class="node-title-group">
-              <span class="node-title">${server.id}</span>
-            </div>
-            <span class="node-url-tag">${server.url}</span>
+            <div class="node-name">${server.id}</div>
+            <div class="node-url">${server.url}</div>
           </div>
-          <span class="node-status-pill ${isHealthy ? 'node-status-healthy' : 'node-status-unhealthy'}">
-            <span class="status-dot"></span>
-            ${isHealthy ? 'In Rotation' : 'Offline'}
+          <span class="node-status-pill ${isHealthy ? 'status-in-rotation' : 'status-outage'}">
+            <span class="status-pulse-dot" style="width: 6px; height: 6px;"></span>
+            <span>${isHealthy ? 'In Rotation' : 'Simulated Down'}</span>
           </span>
         </div>
 
-        <div class="node-metrics-bar">
-          <div class="node-metric">
+        <div class="node-metrics-strip">
+          <div class="node-metric-cell">
             <span class="node-metric-label">Processed</span>
-            <span class="node-metric-value">${serverStat.requests}</span>
+            <span class="node-metric-val">${sStat.requests}</span>
           </div>
-          <div class="node-metric">
-            <span class="node-metric-label">Traffic Share</span>
-            <span class="node-metric-value" style="color: ${nodeColor.hex}">${trafficShare}%</span>
+          <div class="node-metric-cell">
+            <span class="node-metric-label">Share</span>
+            <span class="node-metric-val" style="color: ${theme.hex}">${trafficShare}%</span>
           </div>
-          <div class="node-metric">
-            <span class="node-metric-label">Avg Response</span>
-            <span class="node-metric-value">${serverStat.avg_response_time_ms} ms</span>
+          <div class="node-metric-cell">
+            <span class="node-metric-label">Latency</span>
+            <span class="node-metric-val">${sStat.avg_response_time_ms} ms</span>
           </div>
         </div>
 
-        <div class="node-actions">
-          <button class="btn btn-sm ${isHealthy ? 'btn-node-toggle' : 'btn-node-restore'}"
+        <div class="node-footer">
+          <button class="btn btn-sm ${isHealthy ? 'btn-simulate' : 'btn-restore'}"
                   onclick="toggleServerHealth('${server.id}', ${isHealthy})"
-                  title="${isHealthy ? 'Simulate server crash or network failure' : 'Restore node to healthy rotation'}">
-            ${isHealthy ? 'Simulate Outage' : 'Bring Online'}
+                  title="${isHealthy ? 'Simulate failure on this backend' : 'Restore backend to healthy status'}">
+            ${isHealthy ? 'Simulate Failure' : 'Restore Server'}
           </button>
         </div>
       </div>
@@ -316,12 +316,12 @@ function renderDistribution(stats) {
   // Segmented multi-slice bar
   if (segmentContainer) {
     if (totalRequests === 0) {
-      segmentContainer.innerHTML = `<div class="segment-slice" style="width: 100%; background: rgba(255, 255, 255, 0.05);"></div>`;
+      segmentContainer.innerHTML = `<div class="segment-slice" style="width: 100%; background: #e2e8f0;"></div>`;
     } else {
       segmentContainer.innerHTML = stats.servers.map(server => {
         const percentage = ((server.requests / totalRequests) * 100).toFixed(1);
-        const nodeColor = getNodeColor(server.id);
-        return `<div class="segment-slice" style="width: ${percentage}%; background-color: ${nodeColor.hex};" title="${server.id}: ${percentage}%"></div>`;
+        const theme = getNodeTheme(server.id);
+        return `<div class="segment-slice" style="width: ${percentage}%; background-color: ${theme.hex};" title="${server.id}: ${percentage}%"></div>`;
       }).join("");
     }
   }
@@ -330,16 +330,16 @@ function renderDistribution(stats) {
   if (legendContainer) {
     legendContainer.innerHTML = stats.servers.map(server => {
       const percentage = totalRequests > 0 ? ((server.requests / totalRequests) * 100).toFixed(1) : 0;
-      const nodeColor = getNodeColor(server.id);
+      const theme = getNodeTheme(server.id);
 
       return `
-        <div class="legend-item">
-          <div class="legend-title">
-            <span class="legend-color-dot" style="background-color: ${nodeColor.hex};"></span>
+        <div class="legend-row">
+          <div class="legend-node">
+            <span class="legend-dot" style="background-color: ${theme.hex};"></span>
             <strong>${server.id}</strong>
           </div>
-          <div class="legend-stat">
-            <span>${server.requests} reqs</span> &bull; <span style="color: ${nodeColor.hex};">${percentage}%</span>
+          <div class="legend-metric">
+            <span>${server.requests} reqs</span> &bull; <span style="color: ${theme.hex};">${percentage}%</span>
           </div>
         </div>
       `;
@@ -349,17 +349,17 @@ function renderDistribution(stats) {
 
 async function updateDashboard() {
   const [stats, servers] = await Promise.all([fetchStats(), fetchServers()]);
-  const systemStatus = document.getElementById("system-status");
-  const systemStatusText = document.getElementById("system-status-text");
+  const statusChip = document.getElementById("system-status");
+  const statusText = document.getElementById("system-status-text");
 
   if (!stats || !servers) {
-    if (systemStatus) systemStatus.className = "status-indicator status-offline";
-    if (systemStatusText) systemStatusText.innerText = "Cluster Offline";
+    if (statusChip) statusChip.className = "status-chip status-unhealthy";
+    if (statusText) statusText.innerText = "System Offline";
     return;
   }
 
-  if (systemStatus) systemStatus.className = "status-indicator status-online";
-  if (systemStatusText) systemStatusText.innerText = "Cluster Active";
+  if (statusChip) statusChip.className = "status-chip status-healthy";
+  if (statusText) statusText.innerText = "System Active";
 
   updateOverview(stats, servers);
   renderServers(servers, stats);

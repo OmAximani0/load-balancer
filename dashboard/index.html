@@ -3,143 +3,157 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Load Balancer Monitor | Telemetry Dashboard</title>
-  <link rel="stylesheet" href="/style.css?v=ux-redesign">
+  <title>Mini Distributed Load Balancer | Dashboard</title>
+  <link rel="stylesheet" href="/style.css?v=focused-saas">
 </head>
 <body>
-  <div class="app-layout">
-    <!-- Top Navigation & Control Header -->
-    <header class="app-header">
+  <div class="dashboard-container">
+    <!-- Header with Branding & Primary Actions -->
+    <header class="dashboard-header">
       <div class="brand">
-        <div class="brand-badge">
-          <span class="brand-icon">⚖️</span>
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
         </div>
         <div>
           <div class="brand-title-wrap">
             <h1 class="brand-title">Mini Distributed Load Balancer</h1>
-            <span class="version-tag">Round-Robin</span>
+            <span class="badge-algo">Round-Robin</span>
           </div>
-          <p class="brand-subtitle">Real-time scheduling telemetry, active health monitoring & failover</p>
+          <p class="brand-subtitle">Active health monitoring, automatic failure detection & live telemetry</p>
         </div>
       </div>
 
-      <div class="controls-toolbar" role="toolbar" aria-label="Load balancer controls">
-        <div id="system-status" class="status-indicator status-online" role="status" aria-live="polite">
-          <span class="pulse-ring"></span>
-          <span class="status-dot"></span>
-          <span id="system-status-text">Cluster Active</span>
+      <div class="header-actions">
+        <div id="system-status" class="status-chip status-healthy" role="status">
+          <span class="status-pulse-dot"></span>
+          <span id="system-status-text">System Active</span>
         </div>
 
-        <div class="button-group">
-          <button id="btn-auto-traffic" class="btn btn-outline" title="Automatically generate 1 request per second to observe real-time rotation">
-            <span class="btn-icon">▶</span>
-            <span id="auto-traffic-label">Auto Traffic</span>
-          </button>
-          <button id="btn-reset-traffic" class="btn btn-ghost" title="Reset all request counters and latency statistics">
-            <span class="btn-icon">↺</span>
-            <span>Reset Traffic</span>
-          </button>
-          <button id="btn-send-request" class="btn btn-primary" title="Dispatch an HTTP request through the load balancer">
-            <span class="btn-icon">⚡</span>
-            <span>Send Test Request</span>
-          </button>
-        </div>
+        <button id="btn-reset-traffic" class="btn btn-secondary" title="Reset all request counts and metrics">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          <span>Reset Traffic</span>
+        </button>
+
+        <button id="btn-auto-traffic" class="btn btn-secondary" title="Stream 1 request per second automatically">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span id="auto-traffic-label">Auto Traffic</span>
+        </button>
+
+        <button id="btn-send-request" class="btn btn-primary" title="Forward a single HTTP request through /proxy">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          <span>Send Test Request</span>
+        </button>
       </div>
     </header>
 
-    <div id="alert-banner" class="alert-banner hidden" role="alert" aria-live="assertive"></div>
+    <!-- Notification Toast / Alert Banner -->
+    <div id="alert-banner" class="alert-banner hidden"></div>
 
-    <main class="dashboard-main">
-      <!-- KPI Overview Grid -->
+    <main class="dashboard-body">
+      <!-- 4 Overview KPI Metric Cards -->
       <section class="section" aria-labelledby="kpi-heading">
-        <div class="section-title-bar">
-          <h2 id="kpi-heading" class="section-heading">Cluster Overview</h2>
-          <span class="telemetry-ping"><span class="ping-dot"></span> Live Telemetry</span>
+        <div class="section-header">
+          <h2 id="kpi-heading" class="section-title">Cluster Overview</h2>
+          <span class="refresh-indicator">Auto-refreshing every 2s</span>
         </div>
         <div class="kpi-grid">
           <div class="card kpi-card">
-            <div class="kpi-header">
+            <div class="kpi-head">
               <span class="kpi-label">Total Requests</span>
-              <span class="kpi-icon">📊</span>
+              <div class="kpi-icon-box icon-blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
             </div>
-            <div class="kpi-value-wrap">
-              <span id="stat-total" class="kpi-value">0</span>
-              <span class="kpi-subtext">Cumulative dispatched</span>
+            <div class="kpi-metric-wrap">
+              <span id="stat-total" class="kpi-metric">0</span>
+              <span class="kpi-delta delta-neutral">Cumulative</span>
             </div>
+            <span class="kpi-caption">Dispatched via /proxy</span>
           </div>
 
           <div class="card kpi-card">
-            <div class="kpi-header">
+            <div class="kpi-head">
               <span class="kpi-label">Successful</span>
-              <span class="kpi-icon text-success">✓</span>
+              <div class="kpi-icon-box icon-green">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
             </div>
-            <div class="kpi-value-wrap">
-              <span id="stat-success" class="kpi-value text-success">0</span>
-              <span id="stat-success-rate" class="kpi-subtext text-success">100% success rate</span>
+            <div class="kpi-metric-wrap">
+              <span id="stat-success" class="kpi-metric text-green">0</span>
+              <span id="stat-success-rate" class="kpi-delta delta-green">100% Rate</span>
             </div>
+            <span class="kpi-caption">HTTP 200 responses</span>
           </div>
 
           <div class="card kpi-card">
-            <div class="kpi-header">
+            <div class="kpi-head">
               <span class="kpi-label">Failed Requests</span>
-              <span class="kpi-icon text-danger">✕</span>
+              <div class="kpi-icon-box icon-red">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              </div>
             </div>
-            <div class="kpi-value-wrap">
-              <span id="stat-failed" class="kpi-value text-danger">0</span>
-              <span class="kpi-subtext">502 / 503 errors</span>
+            <div class="kpi-metric-wrap">
+              <span id="stat-failed" class="kpi-metric text-red">0</span>
+              <span class="kpi-delta delta-neutral">0% Errors</span>
             </div>
+            <span class="kpi-caption">502 / 503 error responses</span>
           </div>
 
           <div class="card kpi-card">
-            <div class="kpi-header">
-              <span class="kpi-label">Backend Nodes</span>
-              <span class="kpi-icon text-cyan">🖥️</span>
+            <div class="kpi-head">
+              <span class="kpi-label">Active Backends</span>
+              <div class="kpi-icon-box icon-cyan">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+              </div>
             </div>
-            <div class="kpi-value-wrap">
-              <span id="stat-active" class="kpi-value text-cyan">0 / 3</span>
-              <span class="kpi-subtext">Available in rotation</span>
+            <div class="kpi-metric-wrap">
+              <span id="stat-active" class="kpi-metric text-blue">0 / 3</span>
+              <span class="kpi-delta delta-cyan">Available</span>
             </div>
+            <span class="kpi-caption">Nodes in active rotation</span>
           </div>
         </div>
       </section>
 
-      <!-- Backend Nodes Topology -->
-      <section class="section" aria-labelledby="nodes-heading">
-        <div class="section-title-bar">
+      <!-- Backend Server Fleet -->
+      <section class="section" aria-labelledby="fleet-heading">
+        <div class="section-header">
           <div>
-            <h2 id="nodes-heading" class="section-heading">Backend Node Fleet</h2>
-            <p class="section-subtext">Nodes handling distributed requests in Round-Robin sequence</p>
+            <h2 id="fleet-heading" class="section-title">Backend Server Fleet</h2>
+            <p class="section-subtitle">Nodes serving HTTP traffic sequentially via Round-Robin scheduling</p>
           </div>
-          <span class="badge-refresh">Heartbeat: 2s interval</span>
+          <span class="node-count-badge">3 Nodes Configured</span>
         </div>
         <div id="servers-grid" class="nodes-grid">
           <!-- Rendered dynamically via JavaScript -->
         </div>
       </section>
 
-      <!-- Two-column section: Distribution and Live Activity -->
-      <div class="dashboard-split-layout">
-        <!-- Distribution Visualization -->
-        <section class="section distribution-section" aria-labelledby="dist-heading">
-          <div class="section-title-bar">
-            <h2 id="dist-heading" class="section-heading">Traffic Distribution</h2>
+      <!-- 2-Column Section: Request Distribution + Recent Activity Table -->
+      <div class="two-col-layout">
+        <!-- Request Distribution -->
+        <section class="section col-distribution" aria-labelledby="dist-heading">
+          <div class="section-header">
+            <h2 id="dist-heading" class="section-title">Traffic Distribution</h2>
           </div>
           <div class="card distribution-card">
-            <p class="card-caption">Proportional workload distribution across active backend instances</p>
+            <p class="card-caption">Proportion of requests distributed across nodes</p>
             <div id="distribution-segmented-bar" class="segmented-bar">
-              <!-- Rendered dynamically via JavaScript -->
+              <!-- Rendered dynamically -->
             </div>
             <div id="distribution-bars" class="distribution-legend">
-              <!-- Rendered dynamically via JavaScript -->
+              <!-- Rendered dynamically -->
             </div>
           </div>
         </section>
 
-        <!-- Live Activity Stream -->
-        <section class="section activity-section" aria-labelledby="activity-heading">
-          <div class="section-title-bar">
-            <h2 id="activity-heading" class="section-heading">Recent Dispatches</h2>
-            <span class="badge-stream">Latest 10 requests</span>
+        <!-- Recent Activity Log -->
+        <section class="section col-activity" aria-labelledby="activity-heading">
+          <div class="section-header">
+            <h2 id="activity-heading" class="section-title">Recent Activity</h2>
+            <span class="activity-badge">Last 10 Dispatches</span>
           </div>
           <div class="card activity-card">
             <div class="table-responsive">
@@ -147,20 +161,16 @@
                 <thead>
                   <tr>
                     <th>Req #</th>
-                    <th>Target Node</th>
+                    <th>Backend Node</th>
                     <th>Status</th>
                     <th>Latency</th>
-                    <th>Time</th>
+                    <th>Timestamp</th>
                   </tr>
                 </thead>
                 <tbody id="activity-log-body">
                   <tr>
-                    <td colspan="5" class="empty-state-cell">
-                      <div class="empty-state">
-                        <span class="empty-icon">⚡</span>
-                        <p class="empty-title">No requests recorded yet</p>
-                        <p class="empty-desc">Click "Send Test Request" or "Auto Traffic" above to start dispatching HTTP traffic.</p>
-                      </div>
+                    <td colspan="5" class="table-empty">
+                      No requests recorded yet. Click "Send Test Request" above.
                     </td>
                   </tr>
                 </tbody>
@@ -171,17 +181,17 @@
       </div>
     </main>
 
-    <footer class="app-footer">
-      <div class="footer-content">
-        <span>Mini Distributed Load Balancer &bull; FastAPI + HTTPX + Docker Compose</span>
-        <span class="footer-links">
-          <a href="/docs" target="_blank" rel="noopener">OpenAPI Docs</a> &bull;
-          <a href="/stats" target="_blank" rel="noopener">Raw Stats API</a>
-        </span>
+    <!-- Clean Footer -->
+    <footer class="dashboard-footer">
+      <span>Mini Distributed Load Balancer &bull; FastAPI + HTTPX + Docker Compose</span>
+      <div class="footer-links">
+        <a href="/docs" target="_blank" rel="noopener">OpenAPI Docs</a> &bull;
+        <a href="/stats" target="_blank" rel="noopener">Stats API</a> &bull;
+        <a href="/health" target="_blank" rel="noopener">Health</a>
       </div>
     </footer>
   </div>
 
-  <script src="/script.js?v=ux-redesign"></script>
+  <script src="/script.js?v=focused-saas"></script>
 </body>
 </html>
